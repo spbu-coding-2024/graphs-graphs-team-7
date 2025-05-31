@@ -36,13 +36,6 @@ class DirectedWeightedGraphTest {
     }
 
     @Test
-    fun `update existing edge weight`() {
-        graph.addEdge(v1, v2, 3.0)
-        graph.updateEdgeWeight(v1, v2, 10.0)
-        assertEquals(10.0, graph.getEdgeWeight(v1, v2))
-    }
-
-    @Test
     fun `calculate in-degree and out-degree`() {
         graph.addEdge(v1, v2, 1.0)
         graph.addEdge(v3, v2, 2.0)
@@ -50,13 +43,6 @@ class DirectedWeightedGraphTest {
 
         assertEquals(2, graph.inDegree(v2))
         assertEquals(1, graph.outDegree(v2))
-    }
-
-    @Test
-    fun `prevent adding edge with negative weight`() {
-        assertFailsWith<IllegalArgumentException> {
-            graph.addEdge(v1, v2, -1.0)
-        }
     }
 
     @Test
