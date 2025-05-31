@@ -482,12 +482,7 @@ class GraphViewModel {
     fun importFromJson(json: String) {
         try {
             val serialized = Json.decodeFromString<SerializableGraph>(json)
-            _graph.value = Graph.fromSerializable(serialized) { fromId, toId, weight ->
-                when {
-                    weight != null -> DirectedWeightedEdge(Vertex(fromId), Vertex(toId), weight)
-                    else -> DirectedEdge(Vertex(fromId), Vertex(toId))
-                }
-            }
+            _graph.value = Graph.fromSerializable(serialized)
             _graph.value?.positions?.forEach { (v, pos) ->
                 _graph.value?.setPosition(v, pos.x, pos.y)
             }
