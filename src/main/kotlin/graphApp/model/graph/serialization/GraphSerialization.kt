@@ -1,4 +1,4 @@
-package graphApp.model.graph.serilization
+package graphApp.model.graph.serialization
 
 import graphApp.model.graph.Position
 import graphApp.model.graph.Vertex
@@ -27,6 +27,14 @@ sealed class SerializableEdge {
     @Serializable
     @SerialName("weighted")
     data class Weighted(
+        override val from: String,
+        override val to: String,
+        val weight: Double
+    ) : SerializableEdge()
+
+    @Serializable
+    @SerialName("directed_weighted")
+    data class DirectedWeighted(
         override val from: String,
         override val to: String,
         val weight: Double
