@@ -24,7 +24,7 @@ You can view it by clicking on "Управление".
 
 To create a graph, you can click on the "Generate" button and select the number of vertices.
 
-To connect vertices, you can click on "Merge Vertices" on the "V" keyboard, and then click on two vertices.
+To connect vertices, you can click on "Merge Vertices" and on the "V" keyboard, and then click on two vertices.
 
 If you want to create an edge with a certain weight, then click on "Add Edge", then select the vertices you need and write the weight.
 
