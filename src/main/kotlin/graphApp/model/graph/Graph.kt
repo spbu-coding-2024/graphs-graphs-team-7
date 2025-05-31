@@ -3,6 +3,7 @@ package graphApp.model.graph
 import graphApp.model.graph.serialization.SerializableEdge
 import graphApp.model.graph.serialization.SerializableGraph
 
+@Suppress("UNCHECKED_CAST")
 open class Graph<T : Edge> {
     val vertices = mutableSetOf<Vertex>()
     val edges = mutableListOf<T>()
@@ -101,8 +102,7 @@ open class Graph<T : Edge> {
 
     companion object {
         fun fromSerializable(
-            serializable: SerializableGraph,
-            edgeCreator: (String, String, Double?) -> Edge
+            serializable: SerializableGraph
         ): Graph<Edge> {
             val graph = Graph<Edge>()
 
@@ -135,6 +135,5 @@ open class Graph<T : Edge> {
 fun Edge.toSerializableEdge(): SerializableEdge = when (this) {
     is DirectedEdge -> SerializableEdge.Directed(from.id, to.id)
     is WeightedEdge -> SerializableEdge.Weighted(from.id, to.id, weight)
-    is DirectedWeightedEdge -> SerializableEdge.DirectedWeighted(from.id, to.id, weight)
     else -> throw IllegalArgumentException("Unsupported edge type")
 }
