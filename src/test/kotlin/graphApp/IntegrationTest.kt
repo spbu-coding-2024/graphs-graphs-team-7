@@ -1,4 +1,3 @@
-
 import graphApp.model.algorithms.connectivity.Kosaraju
 import graphApp.model.algorithms.layout.ForceAtlas2
 import graphApp.model.algorithms.shortestpath.Dijkstra
@@ -30,8 +29,8 @@ class LayoutAndConnectivityIntegrationTest {
         val initialComponents = Kosaraju.findStronglyConnectedComponents(graph)
 
         ForceAtlas2().apply {
-            //maxIterations = 50
-            //scalingRatio = 3.0
+            iterations = 50
+            scalingRatio = 3.0f
         }.applyLayout(graph)
 
         val componentsAfterLayout = Kosaraju.findStronglyConnectedComponents(graph)
