@@ -58,7 +58,6 @@ fun FrameWindowScope.MainView(viewModel: GraphViewModel, onNewWindow: () -> Unit
     var isDragging by remember { mutableStateOf(false) }
     var isPanning by remember { mutableStateOf(false) }
     var showHelpDialog by remember { mutableStateOf(false) }
-    val firstVertexForEdge by remember { mutableStateOf<Vertex?>(null) }
     var mergeSourceVertex by remember { mutableStateOf<Vertex?>(null) }
     var dijkstraStart by remember { mutableStateOf<Vertex?>(null) }
     var dijkstraEnd by remember { mutableStateOf<Vertex?>(null) }
@@ -565,7 +564,6 @@ fun FrameWindowScope.MainView(viewModel: GraphViewModel, onNewWindow: () -> Unit
                             algorithmResult = viewModel.algorithmResult.value,
                             selectedVertex = selectedVertex,
                             hoveredVertex = hoveredVertex,
-                            firstVertexForEdge = firstVertexForEdge,
                             firstVertexForMerge = vFirstVertex,
                             scale = viewModel.scale,
                             offset = viewModel.offset,
