@@ -113,7 +113,6 @@ fun DrawScope.drawEdge(
     time: Float,
     start: Offset,
     end: Offset,
-    color: Color = Color.Black,
     isDirected: Boolean,
     weight: Double
 ) {
