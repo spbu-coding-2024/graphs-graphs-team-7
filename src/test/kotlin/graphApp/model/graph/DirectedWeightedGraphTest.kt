@@ -1,4 +1,3 @@
-
 import graphApp.model.graph.DirectedWeightedGraph
 import graphApp.model.graph.Vertex
 import org.junit.Before

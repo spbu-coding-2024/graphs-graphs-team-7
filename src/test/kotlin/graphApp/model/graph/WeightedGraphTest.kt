@@ -1,8 +1,10 @@
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
-import graphApp.model.graph.WeightedGraph
+
 import graphApp.model.graph.Vertex
+import graphApp.model.graph.WeightedGraph
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 
 class WeightedGraphTest {
     private lateinit var graph: WeightedGraph

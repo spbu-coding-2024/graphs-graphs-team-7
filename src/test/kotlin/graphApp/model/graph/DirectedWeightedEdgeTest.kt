@@ -1,4 +1,3 @@
-
 import graphApp.model.graph.DirectedWeightedEdge
 import graphApp.model.graph.Vertex
 import org.junit.jupiter.api.Assertions.assertThrows
