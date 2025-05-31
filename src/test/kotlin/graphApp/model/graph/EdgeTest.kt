@@ -1,4 +1,3 @@
-
 import graphApp.model.graph.Edge
 import graphApp.model.graph.Vertex
 import kotlinx.serialization.encodeToString

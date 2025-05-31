@@ -1,4 +1,3 @@
-
 import graphApp.model.graph.Vertex
 import graphApp.model.graph.WeightedGraph
 import org.junit.jupiter.api.Assertions.assertEquals
