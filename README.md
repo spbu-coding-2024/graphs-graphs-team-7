@@ -33,7 +33,7 @@ There are settings for Dijkstra's algorithm:
 2. Click on a vertex.
 3. Click on "Set End"
 4. Click on a vertex.
-5. Click on "Algorithms" - "Dijkstra's algorithm'
+5. Click on "Algorithms" - "Dijkstra's algorithm"
 The shortest path and the route weight will be displayed at the top.
 
 ## Algorithms
