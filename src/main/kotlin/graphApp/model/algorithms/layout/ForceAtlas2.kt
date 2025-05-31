@@ -1,101 +1,100 @@
 package graphApp.model.algorithms.layout
 
-import graphApp.model.graph.Edge
 import graphApp.model.graph.Graph
+import graphApp.model.graph.Position
 import graphApp.model.graph.Vertex
-import graphApp.model.graph.WeightedEdge
-import kotlin.math.ln
-import kotlin.math.sqrt
+import kotlin.math.hypot
+import kotlin.math.max
 
 class ForceAtlas2 {
-    // Настройки алгоритма
-    var scalingRatio = 2.0
-    var gravity = 1.0
-    var linLogMode = false
-    var preventOverlap = false
-    var edgeWeightInfluence = 1.0
-    var tolerance = 0.1
-    var maxIterations = 100
 
-    fun <T : Edge> applyLayout(graph: Graph<T>) {
-        initializePositions(graph)
-        repeat(maxIterations) { iteration ->
-            val forces = mutableMapOf<Vertex, Pair<Double, Double>>().withDefault { Pair(0.0, 0.0) }
-            calculateRepulsionForces(graph, forces)
-            calculateAttractionForces(graph, forces)
-            applyForces(graph, forces, iteration)
+    private val iterations = 10
+    private val epsilon = 0.01f
+    private val damping = 0.8f
+    private val scalingRatio = 20f
+
+    fun applyLayout(graph: Graph<*>) {
+        val vertices = graph.getAllVertices().toList()
+        if (vertices.isEmpty()) return
+
+        val velocities = mutableMapOf<Vertex, Position>()
+        vertices.forEach { vertex ->
+            velocities[vertex] = Position(0f, 0f)
+        }
+
+        repeat(iterations) {
+            applyRepulsion(vertices, graph.positions, velocities)
+
+            graph.getAllEdges().forEach { edge ->
+                applyAttraction(edge.from, edge.to, graph.positions, velocities)
+            }
+
+            updatePositions(vertices, graph.positions, velocities)
         }
     }
 
-    private fun <T : Edge> initializePositions(graph: Graph<T>) {
-        graph.vertices.forEach { vertex ->
-            if (graph.getPosition(vertex) == null) {
-                graph.setPosition(vertex, (Math.random() * 100).toFloat(), (Math.random() * 100).toFloat())
+    private fun applyRepulsion(
+        vertices: List<Vertex>,
+        positions: Map<Vertex, Position>,
+        velocities: MutableMap<Vertex, Position>
+    ) {
+        for (i in vertices.indices) {
+            val v1 = vertices[i]
+            val pos1 = positions[v1] ?: continue
+
+            for (j in i + 1 until vertices.size) {
+                val v2 = vertices[j]
+                val pos2 = positions[v2] ?: continue
+
+                val dx = pos1.x - pos2.x
+                val dy = pos1.y - pos2.y
+                val distance = max(hypot(dx, dy), epsilon)
+
+                val force = (scalingRatio * scalingRatio) / distance
+
+                velocities[v1] = velocities[v1]!!.add(dx / distance * force, dy / distance * force)
+                velocities[v2] = velocities[v2]!!.add(-dx / distance * force, -dy / distance * force)
             }
         }
     }
 
-    private fun <T : Edge> calculateRepulsionForces(
-        graph: Graph<T>,
-        forces: MutableMap<Vertex, Pair<Double, Double>>
+    private fun applyAttraction(
+        from: Vertex,
+        to: Vertex,
+        positions: Map<Vertex, Position>,
+        velocities: MutableMap<Vertex, Position>
     ) {
-        graph.vertices.forEach { v1 ->
-            graph.vertices.forEach { v2 ->
-                if (v1 != v2) {
-                    val pos1 = graph.getPosition(v1)!!
-                    val pos2 = graph.getPosition(v2)!!
-                    val dx = pos1.x.toDouble() - pos2.x.toDouble()
-                    val dy = pos1.y.toDouble() - pos2.y.toDouble()
-                    val distance = sqrt(dx * dx + dy * dy)
-                    if (distance > 0) {
-                        val repulsion = scalingRatio * scalingRatio / distance
-                        forces[v1] = forces.getValue(v1).let { (fx, fy) ->
-                            Pair(fx + dx / distance * repulsion, fy + dy / distance * repulsion)
-                        }
-                    }
-                }
-            }
-        }
+        val posFrom = positions[from] ?: return
+        val posTo = positions[to] ?: return
+
+        val dx = posFrom.x - posTo.x
+        val dy = posFrom.y - posTo.y
+        val distance = max(hypot(dx, dy), epsilon)
+
+        val force = distance / scalingRatio
+
+        velocities[from] = velocities[from]!!.add(-dx / distance * force, -dy / distance * force)
+        velocities[to] = velocities[to]!!.add(dx / distance * force, dy / distance * force)
     }
 
-    private fun <T : Edge> calculateAttractionForces(
-        graph: Graph<T>,
-        forces: MutableMap<Vertex, Pair<Double, Double>>
+    private fun updatePositions(
+        vertices: List<Vertex>,
+        positions: MutableMap<Vertex, Position>,
+        velocities: MutableMap<Vertex, Position>
     ) {
-        graph.edges.forEach { edge ->
-            val posFrom = graph.getPosition(edge.from)!!
-            val posTo = graph.getPosition(edge.to)!!
-            val dx = posFrom.x.toDouble() - posTo.x.toDouble()
-            val dy = posFrom.y.toDouble() - posTo.y.toDouble()
-            val distance = sqrt(dx * dx + dy * dy)
-            if (distance > 0) {
-                val weight = (edge as? WeightedEdge)?.weight ?: 1.0
-                val attraction = if (linLogMode) {
-                    ln(1 + distance) / distance
-                } else {
-                    distance / (scalingRatio * (1 + edgeWeightInfluence * weight))
-                }
-                forces[edge.from] = forces.getValue(edge.from).let { (fx, fy) ->
-                    Pair(fx - dx * attraction, fy - dy * attraction)
-                }
-                forces[edge.to] = forces.getValue(edge.to).let { (fx, fy) ->
-                    Pair(fx + dx * attraction, fy + dy * attraction)
-                }
-            }
-        }
-    }
+        vertices.forEach { vertex ->
+            val velocity = velocities[vertex]!!
+            val position = positions[vertex]!!
 
-    private fun <T : Edge> applyForces(
-        graph: Graph<T>,
-        forces: Map<Vertex, Pair<Double, Double>>,
-        iteration: Int
-    ) {
-        val temperature = (1 - iteration.toDouble() / maxIterations) * scalingRatio
-        graph.positions.forEach { (vertex, pos) ->
-            val (fx, fy) = forces[vertex] ?: Pair(0.0, 0.0)
-            val newX = pos.x + (fx * temperature).toFloat()
-            val newY = pos.y + (fy * temperature).toFloat()
-            graph.setPosition(vertex, newX, newY)
+            positions[vertex] = Position(
+                position.x + velocity.x,
+                position.y + velocity.y
+            )
+
+            velocities[vertex] = Position(
+                velocity.x * damping,
+                velocity.y * damping
+            )
         }
     }
 }
