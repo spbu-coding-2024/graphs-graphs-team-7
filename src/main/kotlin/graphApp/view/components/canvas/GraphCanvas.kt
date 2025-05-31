@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -22,7 +21,6 @@ fun GraphCanvas(
     algorithmResult: AlgorithmResult? = null,
     selectedVertex: Vertex? = null,
     firstVertexForMerge: Vertex? = null,
-    firstVertexForEdge: Vertex?,
     dijkstraStart: Vertex? = null,
     dijkstraEnd: Vertex? = null,
     hoveredVertex: Vertex? = null,
@@ -54,7 +52,6 @@ fun GraphCanvas(
                         textMeasurer = textMeasurer,
                         start = Offset(fromPos.x, fromPos.y),
                         end = Offset(toPos.x, toPos.y),
-                        color = Color.Red,
                         time = time,
                         isDirected = edge.isDirected(),
                         weight = edge.weight
