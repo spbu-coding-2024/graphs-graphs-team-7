@@ -8,10 +8,10 @@ import kotlin.math.max
 
 class ForceAtlas2 {
 
-    private val iterations = 10
+    var iterations = 10
     private val epsilon = 0.01f
     private val damping = 0.8f
-    private val scalingRatio = 20f
+    var scalingRatio = 20f
 
     fun applyLayout(graph: Graph<*>) {
         val vertices = graph.getAllVertices().toList()
