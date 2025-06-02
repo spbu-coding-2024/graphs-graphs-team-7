@@ -320,28 +320,11 @@ fun FrameWindowScope.MainView(viewModel: GraphViewModel, onNewWindow: () -> Unit
                 )
             },
             content = { padding ->
-                Row(modifier = Modifier.fillMaxSize()) {
-                    ControlPanel(
-                        onNewWindow = onNewWindow,
-                        onAddVertex = { viewModel.addVertexAtPosition(0f, 0f) },
-                        onAddEdge = { showEdgeDialog = true },
-                        onAlgorithms = { showAlgorithmDialog = true },
-                        onClear = { viewModel.clearGraph() },
-                        onMerge = { mergeMode = !mergeMode },
-                        onGenerate = { showGenerateDialog = true },
-                        mergeMode = mergeMode,
-                        onHelp = { showHelpDialog = true },
-                        onUndo = { viewModel.undo() },
-                        onRedo = { viewModel.redo() },
-                        canUndo = viewModel.canUndo,
-                        canRedo = viewModel.canRedo,
-                        onSetDijkstraStart = { selectionMode = SelectionMode.DIJKSTRA_START },
-                        onSetDijkstraEnd = { selectionMode = SelectionMode.DIJKSTRA_END },
-                        dijkstraStart = dijkstraStart,
-                        dijkstraEnd = dijkstraEnd,
-                        modifier = Modifier.width(200.dp)
-                    )
-
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.background)
+                ) {
                     Box(
                         modifier = Modifier
                             .padding(padding)
@@ -605,6 +588,30 @@ fun FrameWindowScope.MainView(viewModel: GraphViewModel, onNewWindow: () -> Unit
                                 fontSize = 18.sp
                             )
                         }
+
+                        ControlPanel(
+                            onAddVertex = { viewModel.addVertexAtPosition(0f, 0f) },
+                            onAddEdge = { showEdgeDialog = true },
+                            onAlgorithms = { showAlgorithmDialog = true },
+                            onClear = { viewModel.clearGraph() },
+                            onMerge = { mergeMode = !mergeMode },
+                            onGenerate = { showGenerateDialog = true },
+                            mergeMode = mergeMode,
+                            onHelp = { showHelpDialog = true },
+                            onUndo = { viewModel.undo() },
+                            onRedo = { viewModel.redo() },
+                            canUndo = viewModel.canUndo,
+                            canRedo = viewModel.canRedo,
+                            onSetDijkstraStart = { selectionMode = SelectionMode.DIJKSTRA_START },
+                            onSetDijkstraEnd = { selectionMode = SelectionMode.DIJKSTRA_END },
+                            dijkstraStart = dijkstraStart,
+                            dijkstraEnd = dijkstraEnd,
+                            modifier = Modifier
+                                .width(200.dp)
+                                .fillMaxHeight()
+                                .background(MaterialTheme.colorScheme.surface)
+                                .padding(8.dp)
+                        )
 
                         // Эффект отмены/повтора
                         if (viewModel.showUndoRedoEffect.value) {
