@@ -15,7 +15,6 @@ import graphApp.view.components.buttons.CustomButton
 
 @Composable
 fun ControlPanel(
-    onNewWindow: () -> Unit,
     onAddVertex: () -> Unit,
     onAddEdge: () -> Unit,
     onAlgorithms: () -> Unit,
@@ -38,10 +37,6 @@ fun ControlPanel(
         modifier = modifier.padding(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        CustomButton(
-            text = "New Window",
-            onClick = onNewWindow
-        )
         CustomButton("Generate", onGenerate)
         CustomButton("Add Vertex", onAddVertex)
         CustomButton("Add Edge",onAddEdge)
