@@ -3,7 +3,6 @@ package graphApp.model.graph
 import graphApp.model.graph.serialization.SerializableEdge
 import graphApp.model.graph.serialization.SerializableGraph
 
-@Suppress("UNCHECKED_CAST")
 open class Graph<T : Edge> {
     val vertices = mutableSetOf<Vertex>()
     val edges = mutableListOf<T>()
@@ -70,7 +69,7 @@ open class Graph<T : Edge> {
         this.edges.forEach { oldEdge ->
             val newFrom = vertexMap[oldEdge.from] ?: error("Vertex not found in map")
             val newTo = vertexMap[oldEdge.to] ?: error("Vertex not found in map")
-            val newEdge = when (oldEdge) {
+            @Suppress("UNCHECKED_CAST") val newEdge = when (oldEdge) {
                 is DirectedWeightedEdge -> DirectedWeightedEdge(newFrom, newTo, oldEdge.weight)
                 is WeightedEdge -> WeightedEdge(newFrom, newTo, oldEdge.weight)
                 is DirectedEdge -> DirectedEdge(newFrom, newTo)
