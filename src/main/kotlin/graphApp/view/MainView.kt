@@ -29,11 +29,9 @@ import androidx.compose.ui.window.FrameWindowScope
 import graphApp.model.algorithms.AlgorithmType
 import graphApp.model.graph.Vertex
 import graphApp.view.components.canvas.GraphCanvas
-import graphApp.view.components.dialogs.AlgorithmDialog
-import graphApp.view.components.dialogs.FileOpenDialog
-import graphApp.view.components.dialogs.FileSaveDialog
-import graphApp.view.components.dialogs.GenerateGraphDialog
+import graphApp.view.components.dialogs.*
 import graphApp.view.components.panels.ControlPanel
+import graphApp.view.components.panels.ZoomControls
 import graphApp.view.themes.MyAppTheme
 import graphApp.viewmodel.AlgorithmResult
 import graphApp.viewmodel.GraphViewModel
@@ -43,69 +41,105 @@ import java.io.File
 @Composable
 fun FrameWindowScope.MainView(viewModel: GraphViewModel, onNewWindow: () -> Unit, onCloseWindow: () -> Unit) {
     // Состояния
-    var darkTheme by remember { mutableStateOf(false) }
-    var showAlgorithmDialog by remember { mutableStateOf(false) }
-    var showEdgeDialog by remember { mutableStateOf(false) }
-    var selectedVertex by remember { mutableStateOf<Vertex?>(null) }
-    var mergeMode by remember { mutableStateOf(false) }
-    var showOpenDialog by remember { mutableStateOf(false) }
-    var openDialogShown by remember { mutableStateOf(false) }
-    var saveDialogShown by remember { mutableStateOf(false) }
-    var showSaveDialog by remember { mutableStateOf(false) }
-    var showGenerateDialog by remember { mutableStateOf(false) }
-    var showVertexWeightDialog by remember { mutableStateOf<Vertex?>(null) }
-    var hoveredVertex by remember { mutableStateOf<Vertex?>(null) }
-    var isDragging by remember { mutableStateOf(false) }
-    var isPanning by remember { mutableStateOf(false) }
-    var showHelpDialog by remember { mutableStateOf(false) }
-    var mergeSourceVertex by remember { mutableStateOf<Vertex?>(null) }
-    var dijkstraStart by remember { mutableStateOf<Vertex?>(null) }
-    var dijkstraEnd by remember { mutableStateOf<Vertex?>(null) }
-    var selectionMode by remember { mutableStateOf<SelectionMode>(SelectionMode.NONE) }
+    var darkTheme by remember { mutableStateOf(false) } // Тёмная тема
+    var showAlgorithmDialog by remember { mutableStateOf(false) } // Отображения диалога алгоритмов
+    var showEdgeDialog by remember { mutableStateOf(false) } // Диалог добавления ребра
+    var selectedVertex by remember { mutableStateOf<Vertex?>(null) } // Выбранная вершина
+    var mergeMode by remember { mutableStateOf(false) } // Режим объединения вершин
+    var showOpenDialog by remember { mutableStateOf(false) } // Отображение диалога открытия файла
+    var openDialogShown by remember { mutableStateOf(false) } // Флаг показа диалога открытия
+    var showSaveFormatDialog by remember { mutableStateOf(false) } // Диалог сохранения с выбором формата
+    var showOpenFormatDialog by remember { mutableStateOf(false) } // Диалог открытия с выбором формата
+    var formatForOpenDialog by remember { mutableStateOf("") } // Формат для открытия файла
+    var showFileOpenDialog by remember { mutableStateOf(false) } // Стандартный диалог выбора файла
+    var showGenerateDialog by remember { mutableStateOf(false) } // Диалог генерации графа
+    var hoveredVertex by remember { mutableStateOf<Vertex?>(null) }  // Вершина под курсором
+    var isDragging by remember { mutableStateOf(false) } // Флаг перетаскивания
+    var isPanning by remember { mutableStateOf(false) } // Флаг перемещения камеры
+    var showHelpDialog by remember { mutableStateOf(false) } // Диалог помощи
+    var mergeSourceVertex by remember { mutableStateOf<Vertex?>(null) } // Исходная вершина для объединения
+    var dijkstraStart by remember { mutableStateOf<Vertex?>(null) } // Начальная вершина для Дейкстры
+    var dijkstraEnd by remember { mutableStateOf<Vertex?>(null) } // Конечная вершина для Дейкстры
+    var selectionMode by remember { mutableStateOf<SelectionMode>(SelectionMode.NONE) } // Режим выбора вершин
 
-    // Состояния для V-режима
-    var vMode by remember { mutableStateOf(false) }
-    var vFirstVertex by remember { mutableStateOf<Vertex?>(null) }
-    var vHintVisible by remember { mutableStateOf(false) }
-    var vHintMessage by remember { mutableStateOf("") }
+    // Состояния для V-режима (соединение вершин)
+    var vMode by remember { mutableStateOf(false) } // Активность режима
+    var vFirstVertex by remember { mutableStateOf<Vertex?>(null) } // Первая выбранная вершина
+    var vHintVisible by remember { mutableStateOf(false) } // Видимость подсказки
+    var vHintMessage by remember { mutableStateOf("") } // Текст подсказки
 
     // Фокус для обработки клавиатуры
     val focusRequester = remember { FocusRequester() }
     var isFocused by remember { mutableStateOf(false) }
 
     // Диалоги
-    if (showSaveDialog && !saveDialogShown) {
-        saveDialogShown = true
-        FileSaveDialog { file: File? ->
-            file?.let {
-                try {
-                    val json = viewModel.exportToJson()
-                    it.writeText(json)
-                } catch (e: Exception) {
-                    println("Ошибка сохранения: ${e.message}")
+    // Диалог сохранения файла с выбором формата
+    if (showSaveFormatDialog) {
+        FileSaveWithFormatDialog { file, format ->
+            if (file != null && format.isNotEmpty()) {
+                val content = when (format) {
+                    "json" -> viewModel.exportToJson()
+                    "csv" -> viewModel.exportToCsv()
+                    else -> ""
                 }
+                file.writeText(content)
             }
-            showSaveDialog = false
-            saveDialogShown = false
+            showSaveFormatDialog = false
         }
     }
 
-    if (showOpenDialog && !openDialogShown) {
-        openDialogShown = true
+    // Диалог выбора формата для открытия файла
+    if (showOpenFormatDialog) {
+        OpenFormatDialog { format ->
+            showOpenFormatDialog = false
+            if (format.isNotEmpty()) {
+                formatForOpenDialog = format
+                showFileOpenDialog = true
+            } else {
+                openDialogShown = false
+            }
+        }
+    }
+
+    // Стандартный диалог выбора файла для открытия
+    if (showFileOpenDialog) {
         FileOpenDialog { file: File? ->
+            showFileOpenDialog = false
+            openDialogShown = false // Сбрасываем флаг после выбора файла
+
             file?.let {
                 try {
-                    val json = it.readText()
-                    viewModel.importFromJson(json)
+                    val content = it.readText()
+                    when (formatForOpenDialog) {
+                        "json" -> viewModel.importFromJson(content)
+                        "csv" -> viewModel.importFromCsv(content)
+                    }
                 } catch (e: Exception) {
                     println("Ошибка загрузки: ${e.message}")
                 }
             }
-            showOpenDialog = false
-            openDialogShown = false
         }
     }
 
+    // Обработка открытия файла через диалог
+    if (showOpenDialog && !openDialogShown) {
+        openDialogShown = true
+        showOpenFormatDialog = true
+        showOpenDialog = false
+    }
+
+    // Диалог генерации графа
+    if (showGenerateDialog) {
+        GenerateGraphDialog(
+            onGenerate = { type, vertexCount, edgeProbability, minWeight, maxWeight ->
+                viewModel.generateGraph(type, vertexCount, edgeProbability, minWeight, maxWeight)
+                showGenerateDialog = false
+            },
+            onDismiss = { showGenerateDialog = false }
+        )
+    }
+
+    // Диалог добавления ребра
     if (showEdgeDialog) {
         var fromVertex by remember { mutableStateOf<Vertex?>(null) }
         var toVertex by remember { mutableStateOf<Vertex?>(null) }
@@ -118,6 +152,7 @@ fun FrameWindowScope.MainView(viewModel: GraphViewModel, onNewWindow: () -> Unit
             title = { Text("Add Edge") },
             text = {
                 Column {
+                    // Выбор начальной вершины
                     var fromExpanded by remember { mutableStateOf(false) }
                     Box {
                         Button(
@@ -144,6 +179,7 @@ fun FrameWindowScope.MainView(viewModel: GraphViewModel, onNewWindow: () -> Unit
 
                     Spacer(modifier = Modifier.height(8.dp))
 
+                    // Выбор конечной вершины
                     var toExpanded by remember { mutableStateOf(false) }
                     Box {
                         Button(
@@ -170,6 +206,7 @@ fun FrameWindowScope.MainView(viewModel: GraphViewModel, onNewWindow: () -> Unit
 
                     Spacer(modifier = Modifier.height(8.dp))
 
+                    // Поле ввода веса
                     TextField(
                         value = weight,
                         onValueChange = { weight = it },
@@ -217,16 +254,6 @@ fun FrameWindowScope.MainView(viewModel: GraphViewModel, onNewWindow: () -> Unit
         )
     }
 
-    if (showGenerateDialog) {
-        GenerateGraphDialog(
-            onGenerate = { type, vertexCount, edgeProbability, minWeight, maxWeight ->
-                viewModel.generateGraph(type, vertexCount, edgeProbability, minWeight, maxWeight)
-                showGenerateDialog = false
-            },
-            onDismiss = { showGenerateDialog = false }
-        )
-    }
-
     MyAppTheme(darkTheme = darkTheme) {
         Scaffold(
             topBar = {
@@ -261,28 +288,14 @@ fun FrameWindowScope.MainView(viewModel: GraphViewModel, onNewWindow: () -> Unit
                     },
                     actions = {
                         var editMenuExpanded by remember { mutableStateOf(false) }
-                        var fileMenuExpanded by remember { mutableStateOf(false) }
-                        IconButton(onClick = { fileMenuExpanded = true }) {
-                            Icon(Icons.Filled.Folder, contentDescription = "File menu")
+                        IconButton(onClick = {
+                            showOpenDialog = true
+                        }) {
+                            Icon(Icons.Filled.Folder, contentDescription = "Open file")
                         }
-                        DropdownMenu(
-                            expanded = fileMenuExpanded,
-                            onDismissRequest = { fileMenuExpanded = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("Save") },
-                                onClick = {
-                                    showSaveDialog = true
-                                    fileMenuExpanded = false
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Open") },
-                                onClick = {
-                                    showOpenDialog = true
-                                    fileMenuExpanded = false
-                                }
-                            )
+
+                        IconButton(onClick = { showSaveFormatDialog = true }) {
+                            Icon(Icons.Filled.Save, "Save")
                         }
                         Box {
                             IconButton(onClick = { editMenuExpanded = true }) {
@@ -505,14 +518,6 @@ fun FrameWindowScope.MainView(viewModel: GraphViewModel, onNewWindow: () -> Unit
                                         else {
                                             selectedVertex = vertex
                                         }
-                                    },
-                                    onDoubleTap = { offset ->
-                                        val graphX = (offset.x - viewModel.offset.x) / viewModel.scale
-                                        val graphY = (offset.y - viewModel.offset.y) / viewModel.scale
-                                        val vertex = viewModel.findVertexAt(graphX, graphY)
-                                        if (vertex != null) {
-                                            showVertexWeightDialog = vertex
-                                        }
                                     }
                                 )
                             }
@@ -648,7 +653,6 @@ fun FrameWindowScope.MainView(viewModel: GraphViewModel, onNewWindow: () -> Unit
                     when (algorithm) {
                         AlgorithmType.DIJKSTRA -> {
                             if (dijkstraStart == null || dijkstraEnd == null) {
-                                // Используем метод viewModel вместо прямого доступа
                                 viewModel.setAlgorithmResult(
                                     AlgorithmResult.MessageResult(
                                         "Select start and end vertices for Dijkstra"
@@ -675,7 +679,6 @@ fun FrameWindowScope.MainView(viewModel: GraphViewModel, onNewWindow: () -> Unit
                     Column {
                         Text("• V: активирует режим соединения вершин")
                         Text("• Esc: отменяет текущее действие")
-                        Text("• Двойной клик: изменить вес вершины")
                         Text("• Add Vertex или ЛКМ + ПКМ: добавить вершину")
                         Text("• ЛКМ по вершине: перемещение вершин")
                         Text("• Колёсико: масштабирование")
@@ -692,30 +695,3 @@ fun FrameWindowScope.MainView(viewModel: GraphViewModel, onNewWindow: () -> Unit
     }
 }
 
-@Composable
-fun ZoomControls(
-    scale: Float,
-    onZoomIn: () -> Unit,
-    onZoomOut: () -> Unit,
-    onReset: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "${(scale * 100).toInt()}%",
-            modifier = Modifier.padding(horizontal = 8.dp)
-        )
-        IconButton(onClick = onZoomOut) {
-            Icon(Icons.Default.Remove, "Zoom Out")
-        }
-        IconButton(onClick = onReset) {
-            Icon(Icons.Default.Refresh, "Reset Zoom")
-        }
-        IconButton(onClick = onZoomIn) {
-            Icon(Icons.Default.Add, "Zoom In")
-        }
-    }
-}
