@@ -5,8 +5,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Redo
 import androidx.compose.material.icons.automirrored.filled.Undo
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -108,5 +112,33 @@ fun ControlPanel(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Composable
+fun ZoomControls(
+    scale: Float,
+    onZoomIn: () -> Unit,
+    onZoomOut: () -> Unit,
+    onReset: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "${(scale * 100).toInt()}%",
+            modifier = Modifier.padding(horizontal = 8.dp)
+        )
+        IconButton(onClick = onZoomOut) {
+            Icon(Icons.Default.Remove, "Zoom Out")
+        }
+        IconButton(onClick = onReset) {
+            Icon(Icons.Default.Refresh, "Reset Zoom")
+        }
+        IconButton(onClick = onZoomIn) {
+            Icon(Icons.Default.Add, "Zoom In")
+        }
     }
 }
