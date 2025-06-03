@@ -33,7 +33,7 @@ There are settings for Dijkstra's algorithm:
 2. Click on a vertex.
 3. Click on "Set End"
 4. Click on a vertex.
-5. Click on "Algorithms" - "Dijkstra's algorithm"
+5. Click on "Algorithms" - "Dijkstra's algorithm" - 
 The shortest path and the route weight will be displayed at the top.
 
 ## Algorithms
@@ -44,6 +44,7 @@ The shortest path and the route weight will be displayed at the top.
 ## Working with a graph
 + JSON - The application implements convenient work with JSON files, which allows users to save and load graphs with all their properties preserved.
 Each graph is saved with all vertices, edges, weights and additional parameters, such as vertex positions on the plane. This ensures accurate restoration of the graph state when saving/loading.
++ CSV - tabular format support is implemented: easy editing in Excel/Google tables.
 
 ## Based on 
 + Jetpack Compose 1.6.0
