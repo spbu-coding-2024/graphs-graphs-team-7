@@ -17,6 +17,8 @@ import kotlin.math.sqrt
 import kotlin.random.Random
 
 class GraphViewModel {
+
+    // Основное состояние графа
     private val _graph = mutableStateOf<Graph<Edge>?>(null)
     val graph: State<Graph<Edge>?> get() = _graph
 
@@ -25,19 +27,26 @@ class GraphViewModel {
     val canRedo get() = _redoStack.isNotEmpty()
     private val _undoStack = mutableStateListOf<GraphState>()
     private val _redoStack = mutableStateListOf<GraphState>()
+
+    // Визуальный эффект отмены / повтора
     private val _showUndoRedoEffect = mutableStateOf(false)
     val showUndoRedoEffect: State<Boolean> get() = _showUndoRedoEffect
 
+    // UI-состояния (загрузка, ошибки)
     private val _uiState = mutableStateOf<UiState>(UiState.Idle)
 
+    // Алгоритм разложения вершин
     private val layoutAlgorithm = ForceAtlas2()
 
+    // Выбранные вершины для алгоритмов
     var selectedStart by mutableStateOf<Vertex?>(null)
     var selectedEnd by mutableStateOf<Vertex?>(null)
 
+    // Параметры масштабирования и позиционирования
     var scale by mutableStateOf(1f)
     var offset by mutableStateOf(Offset.Zero)
 
+    // Результат выполнения алгоритма
     private val _algorithmResult = mutableStateOf<AlgorithmResult?>(null)
     val algorithmResult: State<AlgorithmResult?> get() = _algorithmResult
 
@@ -45,14 +54,16 @@ class GraphViewModel {
 
     private var vertexCounter = 0
 
+    // Сохранение результата алгоритма
     fun setAlgorithmResult(result: AlgorithmResult?) {
         _algorithmResult.value = result
     }
 
     init {
-        saveState()
+        saveState() // Инициализация начального состояния
     }
 
+    // Сохранение текущего состояния в стек отмены
     private fun saveState() {
         _undoStack.add(
             GraphState(
@@ -65,6 +76,7 @@ class GraphViewModel {
         _redoStack.clear()
     }
 
+    // Отмена последнего действия
     fun undo() {
         if (canUndo) {
             // Сохраняем текущее состояние в стек повтора
@@ -88,6 +100,7 @@ class GraphViewModel {
         }
     }
 
+    // Повтор отмененного действия
     fun redo() {
         if (canRedo) {
             // Сохраняем текущее состояние в стек отмены
@@ -111,6 +124,7 @@ class GraphViewModel {
         }
     }
 
+    // Восстановление состояния из стека
     private fun restoreState(state: GraphState) {
         _graph.value = state.graph
         vertexCounter = state.vertexCounter
@@ -118,12 +132,14 @@ class GraphViewModel {
         offset = state.offset
     }
 
+    // Инициализация графа при необходимости
     private fun initializeGraphIfNeeded() {
         if (_graph.value == null) {
             _graph.value = Graph()
         }
     }
 
+    // Генерация уникального ID для вершины
     private fun generateVertexId(): String {
         val existingIds = _graph.value?.vertices?.mapNotNull {
             it.id.removePrefix("V").toIntOrNull()
@@ -132,6 +148,7 @@ class GraphViewModel {
         return "V$newId"
     }
 
+    // Добавление вершины по координатам с анимацией
     fun addVertexAtPosition(x: Float, y: Float) {
         saveState()
         initializeGraphIfNeeded()
@@ -155,6 +172,7 @@ class GraphViewModel {
         }
     }
 
+    // Движение вершины
     fun moveVertex(vertex: Vertex, dx: Float, dy: Float) {
         val scaledDx = dx / scale
         val scaledDy = dy / scale
@@ -168,6 +186,7 @@ class GraphViewModel {
         }
     }
 
+    // Поиск вершины по координатам
     fun findVertexAt(x: Float, y: Float): Vertex? {
         return _graph.value?.positions?.entries?.firstOrNull { (_, pos) ->
             val dx = pos.x - x
@@ -176,6 +195,7 @@ class GraphViewModel {
         }?.key
     }
 
+    // Генерация графа по типу
     fun generateGraph(
         type: GraphType,
         vertexCount: Int,
@@ -191,6 +211,7 @@ class GraphViewModel {
         centerAndScaleGraph()
     }
 
+    // Генерация взвешенного графа
     private fun generateWeightedGraph(
         vertexCount: Int,
         edgeProbability: Double,
@@ -227,6 +248,7 @@ class GraphViewModel {
         centerAndScaleGraph()
     }
 
+    // Генерация дерева
     private fun generateTree(vertexCount: Int, minWeight: Double, maxWeight: Double) {
         saveState()
         clearGraph()
@@ -291,6 +313,7 @@ class GraphViewModel {
         centerAndScaleGraph()
     }
 
+    // Генерация случайного графа
     private fun generateRandomGraph(
         vertexCount: Int,
         edgeProbability: Double,
@@ -324,6 +347,7 @@ class GraphViewModel {
         centerAndScaleGraph()
     }
 
+    // Добавление ребра между вершинами
     fun addEdge(from: Vertex, to: Vertex, weight: Double = 1.0, isDirected: Boolean = false) {
         saveState()
         _graph.value?.let {
@@ -342,6 +366,7 @@ class GraphViewModel {
         }
     }
 
+    // Очистка графа
     fun clearGraph() {
         _algorithmResult.value = null
         saveState()
@@ -350,6 +375,7 @@ class GraphViewModel {
         selectedEnd = null
     }
 
+    // Запуск алгоритма
     fun runAlgorithm(algorithm: AlgorithmType) {
         saveState()
         val currentGraph = _graph.value ?: run {
@@ -382,6 +408,7 @@ class GraphViewModel {
         }
     }
 
+    // Применение алгоритма ForceAtlas2 для расположения вершин
     private fun applyForceLayout() {
         _algorithmResult.value = null
         _graph.value?.let { graph ->
@@ -401,6 +428,7 @@ class GraphViewModel {
         }
     }
 
+    // Центрирование и масштабирование графа
     private fun centerAndScaleGraph() {
         val positions = _graph.value?.positions ?: return
         if (positions.isEmpty()) return
@@ -437,18 +465,20 @@ class GraphViewModel {
         }
     }
 
-
+    // Обработка перемещения камеры
     fun handlePan(dx: Float, dy: Float) {
         saveState()
         offset = Offset(offset.x + dx, offset.y + dy)
     }
 
+    // Обработка масштабирования
     fun handleZoom(zoomDelta: Float) {
         saveState()
         val newScale = (scale * (1 + zoomDelta)).coerceIn(0.01f, 3f)
         scale = newScale
     }
 
+    // Алгоритм Дейкстры
     private fun handleDijkstra(currentGraph: Graph<Edge>): AlgorithmResult {
         // Проверка выбора вершин
         if (selectedStart == null || selectedEnd == null) {
@@ -469,16 +499,19 @@ class GraphViewModel {
         }
     }
 
+    // Алгоритм Косараджу
     private fun handleKosaraju(graph: Graph<Edge>): AlgorithmResult {
         return AlgorithmResult.ConnectedComponents(
             Kosaraju.findStronglyConnectedComponents(graph)
         )
     }
 
+    // Экспорт графа в JSON
     fun exportToJson(): String {
         return Json.encodeToString(graph.value?.toSerializable())
     }
 
+    // Импорт графа из JSON
     fun importFromJson(json: String) {
         try {
             val serialized = Json.decodeFromString<SerializableGraph>(json)
@@ -493,6 +526,88 @@ class GraphViewModel {
             vertexCounter = maxId
         } catch (e: Exception) {
             println("Ошибка десериализации: ${e.message}")
+        }
+    }
+
+    // Экспорт графа в CSV
+    fun exportToCsv(): String {
+        val graph = graph.value ?: return ""
+        val sb = StringBuilder()
+
+        sb.appendLine("type,id,x,y,source,target,weight,directed")
+
+        graph.positions.forEach { (vertex, pos) ->
+            sb.appendLine("vertex,${vertex.id},${pos.x},${pos.y}")
+        }
+
+        graph.edges.forEach { edge ->
+            val directed = edge is DirectedEdge
+            val weight = when (edge) {
+                is WeightedEdge -> {
+                    edge.weight
+                }
+                else -> {
+                    1.0
+                }
+            }
+            sb.appendLine("edge,,,,${edge.from.id},${edge.to.id},$weight,$directed")
+        }
+        return sb.toString()
+    }
+
+    // Импорт графа из CSV
+    fun importFromCsv(csv: String) {
+        try {
+            val lines = csv.lines().filter { it.isNotBlank() }
+            if (lines.isEmpty()) return
+
+            val newGraph = Graph<Edge>()
+            var maxId = 0
+
+            lines.filter { it.startsWith("vertex") }.forEach { line ->
+                val parts = line.split(",")
+                if (parts.size >= 4) {
+                    val id = parts[1]
+                    val x = parts[2].toFloatOrNull() ?: 0f
+                    val y = parts[3].toFloatOrNull() ?: 0f
+
+                    val vertex = Vertex(id)
+                    newGraph.addVertex(vertex)
+                    newGraph.setPosition(vertex, x, y)
+
+                    val idNum = id.removePrefix("V").toIntOrNull()
+                    if (idNum != null && idNum > maxId) {
+                        maxId = idNum
+                    }
+                }
+            }
+
+            lines.filter { it.startsWith("edge") }.forEach { line ->
+                val parts = line.split(",")
+                if (parts.size >= 8) {
+                    val fromId = parts[4]
+                    val toId = parts[5]
+                    val weight = parts[6].toDoubleOrNull() ?: 1.0
+                    val directed = parts[7].toBoolean()
+
+                    val fromVertex = newGraph.vertices.find { it.id == fromId }
+                    val toVertex = newGraph.vertices.find { it.id == toId }
+
+                    if (fromVertex != null && toVertex != null) {
+                        if (directed) {
+                            newGraph.addEdge(DirectedWeightedEdge(fromVertex, toVertex, weight))
+                        } else {
+                            newGraph.addEdge(WeightedEdge(fromVertex, toVertex, weight))
+                        }
+                    }
+                }
+            }
+            _graph.value = newGraph
+            vertexCounter = maxId
+            centerAndScaleGraph()
+
+        } catch (e: Exception) {
+            println("Ошибка импорта CSV: ${e.message}")
         }
     }
 }
